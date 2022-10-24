@@ -1,0 +1,302 @@
+install.packages("FactoInvestigate")
+install.packages("PASWR")
+install.packages("BSDA")
+install.packages("shiny")
+install.packages("FactoMineR")
+install.packages("factoextra")
+install.packages("missMDA")
+install.packages("imputePCA")
+install.packages("ggdendro")
+install.packages("cluster")
+library(ggdendro)
+library(gridExtra)
+library(missMDA)
+library(readxl)
+library(foreign)
+library(FactoMineR)
+library(ggplot2)
+library(factoextra)
+library(shiny)
+library(FactoInvestigate)
+library(Factoshiny)
+library(factoextra)
+library(corrplot)
+library(biplotbootGUI)
+library(dynBiplotGUI)
+library(psych)
+library(ggplot2)
+library(dplyr)
+library(readxl)
+library(BSDA)
+library(cluster)
+
+ENCUESTA <- read_excel("E:/SEMINARIO ESPECIALIZACIÓN/ENTREGAS/BASE_DATOS2.xlsx")
+DATOS <- as.data.frame(na.omit(ENCUESTA))
+
+
+##RESUMEN DATOS 
+summary(DATOS)
+
+##DEFINE VARIABLES CARACTER COMO FACTOR CATEGORICO
+DATOS$SEXO <- factor(DATOS$SEXO)
+DATOS$COMUNA <- factor(DATOS$COMUNA)
+DATOS$COMUNA <- factor(DATOS$COMUNA)
+DATOS$ESTRATO <- factor(DATOS$ESTRATO)
+DATOS$REALIZA_ACTIVI <- factor(DATOS$REALIZA_ACTIVI)
+DATOS$ACTIV_INDER <- factor(DATOS$ACTIV_INDER)
+DATOS$CONOCE_INDER <- factor(DATOS$CONOCE_INDER)
+DATOS$CICLO_VIDA <- factor(DATOS$CICLO_VIDA)
+
+summary(DATOS)
+
+# Muestra: 1) Dimensión de la base de datos, 2) Cada variable, el tipo y los primeros 10 valores
+str(DATOS)
+
+# Tabla de frecuencias absolutas sexo
+(Frec.SEXO <- table(DATOS$SEXO))
+# Tabla de frecuencias relativas SEXO
+(Frec.Rel.SEXO <- prop.table(Frec.SEXO))
+# Tabla de frecuencias absolutas y relativas 
+cbind(Frec.SEXO, Frec.Rel.SEXO)
+
+# Tabla de frecuencias absolutas actividadas fisica
+(Frec.ACTFIS <- table(DATOS$REALIZA_ACTIVI_FIS))
+# Tabla de frecuencias relativas actividad fisica
+(Frec.Rel.ACTFIS  <- prop.table(Frec.ACTFIS))
+# Tabla de frecuencias absolutas y relativas 
+cbind(Frec.ACTFIS, Frec.Rel.ACTFIS)
+
+# Tabla de frecuencias absolutas actividadas fisica
+(Frec.CICLOVIDA <- table(DATOS$CICLO_VIDA))
+# Tabla de frecuencias relativas actividad fisica
+(Frec.Rel.CICLOVIDA  <- prop.table(Frec.CICLOVIDA))
+# Tabla de frecuencias absolutas y relativas 
+cbind(Frec.CICLOVIDA, Frec.Rel.CICLOVIDA)
+
+
+# Diagrama de barras 
+barplot(Frec.Rel.SEXO)
+
+##FRECUENCIAS PARA GRAFICO DE TORTAS
+nSEXO <- length(DATOS$SEXO)
+TORTA <- paste(round(Frec.Rel.SEXO*100,2),"%",sep = "")
+TORTANOM <- paste(row.names(Frec.Rel.SEXO), "\n(", TORTA, ")", sep = "")
+
+color<- c("#79CDCD", "rosybrown1")
+color1<- c("rosybrown1", "#79CDCD")
+pie(Frec.Rel.SEXO, TORTA, radius = 1, main = 'PORCENTAJE DE PERSONAS ENCUENTADAS SEG?N SEXO',col=(color))
+legend("topright", c("MUJERES","HOMBRES"),cex = 0.8, fill = color1)
+
+
+# Tabla de frecuencias absolutas para  ACTV FISICA vs SEXO - ESTRATO - CICLO VIDA
+(SEXOACT <- table(DATOS$SEXO, DATOS$REALIZA_ACTIVI))
+(ESTRATOACT <- table( DATOS$REALIZA_ACTIVI_FIS, DATOS$ESTRATO))
+(CICLOVIDAACT <- table( DATOS$REALIZA_ACTIVI_FIS, DATOS$CICLO_VIDA))
+
+# Tabla de frecuencias relativas
+(SEXOACT.Rel <- prop.table(SEXOACT))
+(ESTRATOACT.Rel <- prop.table(ESTRATOACT))
+(CICLOVIDA.Rel <- prop.table(CICLOVIDAACT))
+
+# Tabla de frecuencias relativas por fila
+prop.table(SEXOACT.Rel, margin = 1)
+prop.table(ESTRATOACT.Rel, margin = 1)
+prop.table(CICLOVIDA.Rel, margin = 1)
+
+# Tabla de frecuencias relativas por columna
+prop.table(SEXOACT.Rel, margin = 2)
+prop.table(ESTRATOACT.Rel, margin = 2)
+prop.table(CICLOVIDA.Rel, margin = 2)
+
+
+#barplot(SEXOACT.Rel, main = 'Frecuencias relativas de sexo seg?n si practica o no actividad f?sica',
+#        beside = T, col = c("orange", "lightyellow"), 
+#        ylim = c(0, 0.5),las = 1, ylab = 'Frecuencia relativa',
+#        xlab = 'Practica actividad f?sica',legend = T,
+#        args.legend = list(x = "topright",cex = 0.6),legend.text = c("HOMBRE", "MUJER"))
+
+win.graph()
+barplot(ESTRATOACT.Rel,beside = T, col = c("#CDC9C9", "#CAE1FF"), 
+        ylim = c(0, 0.5),las = 1, ylab = 'Frecuencia relativa',
+        xlab = 'Estrato',legend = T,
+        args.legend = list(x = "topright",cex = 1),legend.text = rownames(ESTRATOACT))
+
+win.graph()
+barplot(CICLOVIDA.Rel,beside = T, col = c("#CDC9C9", "#CAE1FF"),
+        ylim = c(0, 0.5),las = 1, ylab = 'Frecuencia relativa',
+        xlab = 'Rangos de edad',legend = T,cex.names = 0.8, cex.axis = 0.8,
+        args.legend = list(x = "topright",cex = 1),legend.text = rownames(CICLOVIDAACT))
+
+
+# Estadísticos y Gráficos para variables cuantitativas-------------------------------#
+# Medidas de tendencia central, variabilidad, posición y correlación
+
+#MEDIA MINUTOS PRACTICA
+mean(DATOS$`PRAC_MIN/SEMANA`)
+median(DATOS$`PRAC_MIN/SEMANA`)
+var(DATOS$`PRAC_MIN/SEMANA`)
+sd(DATOS$`PRAC_MIN/SEMANA`)
+
+#MEDIA EDAD
+mean(DATOS$EDAD)
+median(DATOS$EDAD)
+
+# Distribución de frecuencias para tiempo practica
+dist.TIEMPO <- hist(DATOS$`PRAC_MIN/SEMANA`, plot = F)
+TIEMPO.cut <- cut(DATOS$`PRAC_MIN/SEMANA`, dist.TIEMPO$breaks)
+frec.TIEMPO <- table(TIEMPO.cut)
+frec.rel.TIEMPO <- frec.TIEMPO/nrow(DATOS)
+(dist.frec.TIEMPO <- cbind(frec.TIEMPO, frec.rel.TIEMPO))
+hist(DATOS$`PRAC_MIN/SEMANA`)
+
+(dist.TIEMPO$counts <- round(frec.rel.TIEMPO, 3))
+plot(dist.TIEMPO, main = "Histograma para el tiempo de practica", 
+     las = 1, col = "#8EE5EE", xlab = "Tiempo práctica/minutos", 
+     ylab = "Frecuencia relativa", ylim = c(0, 0.10))
+
+#DISTRIBUCION DE TIEMPO POR SEXO 
+HOMBRES <- DATOS %>% filter(SEXO == "H")
+HOMBRES
+HEDAD <- HOMBRES$EDAD
+HEDAD
+MUJERES <- DATOS %>% filter(SEXO == "M")
+MUJERES
+MEDAD <- MUJERES$EDAD
+MEDAD
+
+HOMBRESSI <- HOMBRES %>% filter(REALIZA_ACTIVI == "SI")
+MUJERESSI <- MUJERES %>% filter(REALIZA_ACTIVI == "SI")
+
+HMINUTOS <- HOMBRESSI$`PRAC_MIN/SEMANA`
+MMINUTOS <- MUJERESSI$`PRAC_MIN/SEMANA`
+
+dist.TIEMPOH <- hist(HMINUTOS, plot = F)
+TIEMPOH.cut <- cut(HMINUTOS, dist.TIEMPOH$breaks)
+frec.TIEMPOH <- table(TIEMPOH.cut)
+frec.rel.TIEMPOH <- frec.TIEMPOH/nrow(DATOS)
+(dist.frec.TIEMPOH <- cbind(frec.TIEMPOH, frec.rel.TIEMPOH))
+hist(HMINUTOS)
+
+(dist.TIEMPOH$counts <- round(frec.rel.TIEMPOH, 3))
+plot(dist.TIEMPOH, main = "Histograma para el tiempo de practica", 
+     las = 1, col = "lightblue", xlab = "Tiempo pr?ctica/minutos", 
+     ylab = "Frecuencia relativa", ylim = c(0, 0.05))
+
+
+dist.TIEMPOM <- hist(MMINUTOS, plot = F)
+TIEMPOM.cut <- cut(MMINUTOS, dist.TIEMPOM$breaks)
+frec.TIEMPOM <- table(TIEMPOM.cut)
+frec.rel.TIEMPOM <- frec.TIEMPOM/nrow(DATOS)
+(dist.frec.TIEMPOM <- cbind(frec.TIEMPOM, frec.rel.TIEMPOM))
+hist(MMINUTOS)
+
+(dist.TIEMPOM$counts <- round(frec.rel.TIEMPOM, 3))
+plot(dist.TIEMPOM, main = "Histograma para el tiempo de practica", 
+     las = 1, col = "lightyellow", xlab = "Tiempo pr?ctica/minutos", 
+     ylab = "Frecuencia relativa", ylim = c(0, 0.05))
+
+
+#PROBAR NORMALIDAD 
+nH <- length(HMINUTOS)
+nM <- length(MMINUTOS)
+mH <- mean(HMINUTOS)
+mM <- mean(MMINUTOS)
+vH <- var(HMINUTOS)
+vM <- var(MMINUTOS)
+sdH <- sd(HMINUTOS)
+sdM <- sd(MMINUTOS)
+
+plot(HMINUTOS, main = "Histograma para el tiempo de practica", 
+     las = 1, col = "yellow", xlab = "Tiempo pr?ctica/minutos", 
+     ylab = "Frecuencia relativa", ylim = c(0, 0.10))
+
+
+qqnorm(HMINUTOS,ylim = c(0, 900),xlim = c(-3, 3), col = 'blue')
+qqline(HMINUTOS, col = 'blue')
+par(new = T)
+qqnorm(MMINUTOS,ylim = c(0, 900),xlim = c(-3, 3), col = 'pink')
+qqline(MMINUTOS, col = 'pink')
+
+alphaMIN <- 0.05
+
+qqnorm(HEDAD,ylim = c(0, 100),xlim = c(-3, 3), col = 'blue')
+qqline(HEDAD, col = 'blue')
+par(new = T)
+qqnorm(MEDAD,ylim = c(0, 100),xlim = c(-3, 3), col = 'pink')
+qqline(MEDAD, col = 'pink')
+
+#ks.test(HMINUTOS, 'pnorm', mean = mean(HMINUTOS), sd = sd(HMINUTOS))
+#ks.test(MMINUTOS, 'pnorm', mean = mean(MMINUTOS), sd = sd(MMINUTOS))
+
+#ad.test(HMINUTOS)
+#ad.test(c(MMINUTOS, mean(HMINUTOS)))
+#ntester(HMINUTOS)
+
+alpha <- 0.05
+(VCI <- var.test(HMINUTOS, MMINUTOS, conf.level = 1 - alpha)$conf.int)
+
+alphaMIN <- 0.05
+LIH <- mH - qnorm(1 - alphaMIN/2)*sdH/sqrt(nH)
+LSH <- mH + qnorm(1 - alphaMIN/2)*sdH/sqrt(nH)
+paste0("(LIH = ", round(LIH, 4), ", LSH = ", round(LSH, 4), ")")
+
+LIM <- mM - qnorm(1 - alphaMIN/2)*sdM/sqrt(nM)
+LSM <- mM + qnorm(1 - alphaMIN/2)*sdM/sqrt(nM)
+paste0("(LIM = ", round(LIM, 4), ", LSM = ", round(LSM, 4), ")")
+
+z.test(HMINUTOS,sigma.x = sdH,MMINUTOS,sigma.y = sdM, conf.level = 1 - alphaMIN)
+
+
+
+
+##---------------------------CLUSTER-----------------------------------------##
+
+ENCUESTA2<-data.frame(DATOS[7:12])
+
+ENCUESTA2 <- na.omit(ENCUESTA2) #OMITE LOS NA PARA LA GRAFICA
+#model <- kmeans(ENCUESTA2[ ! is.na ( ENCUESTA2 ) ], centers = 3)
+
+#print(model$cluster)
+#ggplot(ENCUESTA2, aes(x = age, y = spend,colour=cluster)) + geom_point()
+#table(model$cluster)
+#model1 <- HCPC(ENCUESTA2,min = 5,graph = F)
+#table(model1)
+
+#--Clusters no jerarquico K-means--------------------------------------------#
+
+# k-means con 5 grupos
+Clust_KMeans <- kmeans(ENCUESTA2, centers = 4)
+
+DATOS$Clust_KMeans<-Clust_KMeans$cluster
+DATOS$Clust_KMeans<-as.factor(DATOS$Clust_KMeans)
+table(DATOS$Clust_KMeans)
+barplot(table(DATOS$Clust_KMeans),main="4 Clusters por k-means",xlab="Clusters", ylab="Nro de encuestados",col = c("#B0E2FF", "#CDC9C9", "#B4EEB4", "#EEDC82", "#EEDC82"))
+
+#CLUSTERS REPRESENTATIVIDAD
+CLUSTERK <- fviz_cluster(Clust_KMeans, geom = "point",  data = ENCUESTA2) + ggtitle("k = 4")
+grid.arrange(CLUSTERK)
+
+#CLUSTER Y PCA----------------------------------------------------------------#
+win.graph()
+fviz_cluster(object = km_clusters, data = ENCUESTA2, show.clust.cent = TRUE,
+             ellipse.type = "euclid", star.plot = TRUE, repel = TRUE,
+             pointsize=0.8,outlier.color="darkred") +
+  labs(title = "Resultados clustering K-means") +
+  theme_bw() +  theme(legend.position = "none")
+
+#XCLUSTERS - PCA
+#ENCUESTA2 <- na.omit(ENCUESTA2)
+#DATOS <- DATOS[,-33]
+cm_pca<-data.frame(scale(DATOS[7:12]))
+cm_pca<-data.frame(cm_pca[1:6],DATOS[,"Clust_KMeans"])
+names(cm_pca)
+summary(cm_pca)
+#cm_pca <- scale(cm_pca)
+
+PCACM<- PCA(cm_pca, graph = F, quali.sup = 7)
+fviz_pca_biplot(PCACM,label="var",habillage=7,repel=T,col.var="gray2",title="BIPLOT con Clusters de KMeans") 
+
+
+### Exportar los datos a Excel
+write.csv(DATOS, file="CLUSTER_DATOS_4CLUST.csv")
+
