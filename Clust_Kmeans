@@ -307,6 +307,8 @@ write.csv(DATOS, file="CLUSTER_DATOS_4CLUST.csv")
 
 
 ##----------------------------------ILUSTRACIONES---------------------------------------------------##
+##Tomados de internet
+
 data.scaled <- scale(x = USArrests,
                      center = TRUE,
                      scale = TRUE)
@@ -356,4 +358,4 @@ irisCluster <- kmeans(iris[, 3:4], 3, nstart = 20)
 irisCluster
 irisCluster$cluster <- as.factor(irisCluster$cluster)
 ggplot(iris, aes(Petal.Length, Petal.Width, color = irisCluster$cluster)) + geom_point()
-##Tomado de internet
+
