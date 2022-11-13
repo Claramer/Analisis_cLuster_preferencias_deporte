@@ -262,6 +262,11 @@ ENCUESTA2 <- na.omit(ENCUESTA2) #OMITE LOS NA PARA LA GRAFICA
 #model1 <- HCPC(ENCUESTA2,min = 5,graph = F)
 #table(model1)
 
+##Numero optimo de clusters
+fviz_nbclust(x = ENCUESTA2, FUNcluster = kmeans, method = "wss", k.max = 10, 
+             diss = get_dist(ENCUESTA2, method = "euclidean")) + labs(title = "Número óptimo de clusters")
+             
+
 #--Clusters no jerarquico K-means--------------------------------------------#
 
 # k-means con 5 grupos
@@ -300,3 +305,55 @@ fviz_pca_biplot(PCACM,label="var",habillage=7,repel=T,col.var="gray2",title="BIP
 ### Exportar los datos a Excel
 write.csv(DATOS, file="CLUSTER_DATOS_4CLUST.csv")
 
+
+##----------------------------------ILUSTRACIONES---------------------------------------------------##
+data.scaled <- scale(x = USArrests,
+                     center = TRUE,
+                     scale = TRUE)
+head(data.scaled)
+
+require(stats)
+
+# Matriz de distancias
+res.dist = dist(x = data.scaled,
+                method = "euclidean")
+# Imprimi la matriz de distancias
+output = as.matrix(res.dist)[1:6, 1:6]
+round(output, digits = 3)
+
+d = as.dist(output)
+
+require(stats)
+res.hc <- hclust(d = res.dist,
+                 method = "complete")
+plot(x = res.hc)
+require(factoextra)
+
+fviz_dend(x = res.hc, cex = 0.7, lwd = 0.7) 
+
+fviz_dend(x = res.hc, cex = 0.8, lwd = 0.8, k = 4,
+          # Seleccionando manualmente los colores
+          k_colors = c("red", "green3", "blue", "magenta"),
+          rect = TRUE, 
+          rect_border = "gray", 
+          rect_fill = FALSE)
+
+fviz_dend(x = res.hc, cex = 0.8, lwd = 0.8, k = 4,
+          # OR JCO fill color for rectangles
+          k_colors = c("jco"),
+          rect = TRUE, 
+          rect_border = "jco", 
+          rect_fill = TRUE)
+
+
+data(iris)
+modelo <- kmeans(iris[,1:4], centers = 3)
+modelo
+table(modelo$cluster, iris[,5])
+plot(modelo$cluster)
+ggplot(iris, aes(Petal.Length, Petal.Width, color = Species)) + geom_point()
+irisCluster <- kmeans(iris[, 3:4], 3, nstart = 20)
+irisCluster
+irisCluster$cluster <- as.factor(irisCluster$cluster)
+ggplot(iris, aes(Petal.Length, Petal.Width, color = irisCluster$cluster)) + geom_point()
+##Tomado de internet
